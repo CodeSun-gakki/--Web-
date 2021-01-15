@@ -1,0 +1,6 @@
+2021-01-14 10:13:31.135  INFO 92128 --- [main] com.codesun.DemoApplicationTests         : Starting DemoApplicationTests using Java 1.8.0_231 on DESKTOP-5SO9LNV with PID 92128 (started by 不知道干啥 in D:\编程学习\WebServer)
+2021-01-14 10:13:31.140  INFO 92128 --- [main] com.codesun.DemoApplicationTests         : No active profile set, falling back to default profiles: default
+2021-01-14 10:13:32.156  INFO 92128 --- [main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
+2021-01-14 10:13:32.255  INFO 92128 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2021-01-14 10:13:32.427  INFO 92128 --- [main] com.codesun.DemoApplicationTests         : Started DemoApplicationTests in 1.602 seconds (JVM running for 2.438)
+2021-01-14 10:13:32.675  INFO 92128 --- [SpringContextShutdownHook] o.s.s.concurrent.ThreadPoolTaskExecutor  : Shutting down ExecutorService 'applicationTaskExecutor'

@@ -1,0 +1,10 @@
+server:
+  servlet:
+    context-path: /ghost
+  port: 8989
+logging:
+  file:
+    path: /
+    name: server.log
+  level:
+    root: info
