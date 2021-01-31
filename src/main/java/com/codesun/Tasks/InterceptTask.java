@@ -12,4 +12,8 @@ public class InterceptTask {
    private String imsi;
    private String phone;
    private String phone_nation_code;
+
+   public boolean hasMessage(){
+      return this.imsi!=null&&this.phone!=null&&this.phone_nation_code!=null;
+   }
 }

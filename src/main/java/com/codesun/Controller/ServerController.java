@@ -6,17 +6,15 @@ import com.codesun.Tasks.InterceptTask;
 import com.codesun.Tasks.Task;
 import com.codesun.Utils.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sun.org.apache.bcel.internal.classfile.Code;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+@ToString
 @Slf4j
 @RestController
 public class ServerController {
@@ -32,10 +30,10 @@ public class ServerController {
 
     private Task task;
     private volatile String CODE;
-    private volatile String CODEState;
+    private volatile int CODEState=-1;
     @PostMapping("/send!m.action")
     public String acceptRequest(String s){
-        String JsonText=null;
+        String JsonText;
         if(s==null){
             log.error("请求参数接受错误");
             return null;
@@ -72,8 +70,8 @@ public class ServerController {
             //这里进行加密进行返回，这里后面需要改回来
             //return base64Encoder.encode(result.getBytes());
             if(!task.getContent().equals("NotGet")){
-                CODE=task.getContent();
-                CODEState="GET";
+                CODE=new String(task.getContent().toCharArray());
+                CODEState=1;
             }
             return result;
         }
@@ -81,9 +79,9 @@ public class ServerController {
         return null;
     }
 
-    @PostMapping("/getVerificationCode")
+    @RequestMapping("/getVerificationCode")
     public String AppiumRequest(InterceptTask interceptTask){
-      if(interceptTask!=null){
+      if(interceptTask!=null&&interceptTask.hasMessage()){
           this.interceptTask=interceptTask;
           return "ok";
       } else{
@@ -95,31 +93,37 @@ public class ServerController {
         //正在运行   1001     //出错     1002  // 短信抓取设备已经准备就绪  1004      //拿到结果     1003
         if(this.task==null)
             return "1001";
+        if(this.interceptTask==null)
+            //没有注册任务就直接返回出错
+            return "1002";
         return this.task.getState();
     }
 
     @RequestMapping("/getCodeState")
     public String getCodeState(){
-        if(CODEState!=null&&"GET".equals(CODEState)){
+        if(CODEState!=-1){
+            log.info("获取短信状态: ok");
             return "ok";
         }else{
+            log.info("获取短信状态: error");
             return "error";
         }
     }
     @RequestMapping("/getCodeContent")
     public String getCodeContent(){
-        if(this.task==null)
-            return base64Encoder.encode("NotGet".getBytes());
-        else{
-            CODEState=null;
-            String temp= CODE;
-            CODE=null;
-            if(temp==null)
-            {
-                return base64Encoder.encode("NotGet".getBytes());
-            }
-            return base64Encoder.encode(temp.getBytes());
-        }
-
+      if(CODEState!=-1&&CODE!=null){
+          CODEState=-1;
+          String ans=new String(CODE.toCharArray());
+          CODE=null;
+          log.info("获取短信内容成功,内容为:"+ans);
+          return base64Encoder.encode(ans.getBytes());
+      }
+      log.info("获取短信内容为:NotGet");
+      return  base64Encoder.encode("NotGet".getBytes());
+    }
+    @RequestMapping("/cancelTask")
+    public String cancelTask(){
+        this.interceptTask=null;
+        return "ok";
     }
 }
