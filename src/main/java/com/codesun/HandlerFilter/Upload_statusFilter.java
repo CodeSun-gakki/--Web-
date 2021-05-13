@@ -1,5 +1,6 @@
 package com.codesun.HandlerFilter;
 
+import com.codesun.Controller.ServerController;
 import com.codesun.Enum.CmdType;
 import com.codesun.Filter.RequestFilter;
 import com.codesun.Messages.ErrorMessage;
@@ -51,10 +52,12 @@ public class Upload_statusFilter implements RequestFilter {
                 errorMessage.setCmd_type("300");
                 task.setState("1002");
                 log.info("返回设备状态不稳定消息");
+                ServerController.taskStatus=102;
             }else{
                 //如果设备正常运转的话，直接返回设备需要的信息
                 errorMessage.setCmd_type("204");
                 task.setState("1004");
+                ServerController.taskStatus=101;
                 log.info("返回信息就绪消息");
             }
             String ans=null;

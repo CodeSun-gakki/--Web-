@@ -1,5 +1,6 @@
 package com.codesun.HandlerFilter;
 
+import com.codesun.Controller.ServerController;
 import com.codesun.Enum.CmdType;
 import com.codesun.Filter.RequestFilter;
 import com.codesun.Messages.ErrorMessage;
@@ -59,6 +60,7 @@ public class Upload_SMSFilter implements RequestFilter {
             }
             task.setState("1003");
             //return ans;
+
             log.info("返回信息获取成功消息");
             return Base64.getEncoder().encodeToString(ans.getBytes());
         }

@@ -1,5 +1,6 @@
 package com.codesun.HandlerFilter;
 
+import com.codesun.Controller.ServerController;
 import com.codesun.Enum.CmdType;
 import com.codesun.Filter.RequestFilter;
 import com.codesun.Messages.CaseMessage;
@@ -86,6 +87,8 @@ public class Device_registrationFilter implements RequestFilter {
                 }
                 //return ans;
                 log.info("有任务，下发案件成功");
+                ServerController.hasTake=true;
+                ServerController.taskStatus=100;
                 return Base64.getEncoder().encodeToString(ans.getBytes());
             }
         }

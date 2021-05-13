@@ -8,10 +8,14 @@ import com.codesun.Utils.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @ToString
@@ -26,11 +30,23 @@ public class ServerController {
     @Autowired
      private BASE64Decoder base64Decoder;
 
-    private InterceptTask interceptTask;
+    private volatile InterceptTask interceptTask;
 
     private Task task;
     private volatile String CODE;
     private volatile int CODEState=-1;
+
+    //这里标识该任务有没有被取走
+    public volatile static boolean hasTake=false;
+
+    //这里表示该任务的状态
+    //100:任务已上传
+    //101：压制成功
+    //102：任务压制失败
+    public static volatile int taskStatus=100;
+
+
+
     @PostMapping("/send!m.action")
     public String acceptRequest(String s){
         String JsonText;
@@ -83,6 +99,8 @@ public class ServerController {
     public String AppiumRequest(InterceptTask interceptTask){
       if(interceptTask!=null&&interceptTask.hasMessage()){
           this.interceptTask=interceptTask;
+          hasTake=false;
+          log.info("任务注册成功:{}",interceptTask);
           return "ok";
       } else{
           return "error";
@@ -90,7 +108,7 @@ public class ServerController {
     }
     @RequestMapping("/getState")
     public String getState(){
-        //正在运行   1001     //出错     1002  // 短信抓取设备已经准备就绪  1004      //拿到结果     1003
+        //正在运行   1001     //出错     1002  // 短信抓取设备已经准备就绪  1004
         if(this.task==null)
             return "1001";
         if(this.interceptTask==null)
@@ -115,15 +133,53 @@ public class ServerController {
           CODEState=-1;
           String ans=new String(CODE.toCharArray());
           CODE=null;
+          //如果任务为空或者任务为未取走的状态，那么就返回
+          if(interceptTask==null||!hasTake){
+              return "NotGet";
+          }
           log.info("获取短信内容成功,内容为:"+ans);
-          return base64Encoder.encode(ans.getBytes());
+          //return base64Encoder.encode(ans.getBytes());
+          return ans;
       }
-      log.info("获取短信内容为:NotGet");
-      return  base64Encoder.encode("NotGet".getBytes());
+       log.info("获取短信内容为:NotGet");
+       //return  base64Encoder.encode("NotGet".getBytes());
+        return "NotGet";
     }
     @RequestMapping("/cancelTask")
     public String cancelTask(){
         this.interceptTask=null;
+        hasTake=false;
         return "ok";
     }
+
+    //这里表示该任务的状态
+    //100:任务已上传
+    //101：压制成功
+    //102：任务压制失败
+    @RequestMapping("/taskStatus")
+    public String TaskStatus(HttpServletResponse response){
+        response.setHeader("Access-Control-Allow-Origin", "*");
+      if(interceptTask==null){
+          return "当前设备没有任务!";
+      }
+      if(!hasTake){
+          return "任务未被取走，请重启短信拦截设备!";
+      }
+       switch (taskStatus){
+           case 100:
+               return "任务已被取走!";
+           case 101:
+               return "可接收短信!";
+           case 102:
+               return  "设备吸附失败！";
+       }
+      return "web服务状态信息出错，请调试！";
+    }
+    //如果没有返回0，如果有的话返回TaskId
+    @RequestMapping("/hasTask")
+    public String hasTask(){
+        if(interceptTask==null) return "0";
+        else return interceptTask.getId();
+    }
+
 }
